@@ -48,32 +48,75 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 48),
-                child: Column(
-                  children: [
-                    TextFormField(
-                      decoration: InputDecoration(
-                          hintText: 'Enter Your Email',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(
-                              100,
+                child: Form(
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: 300,
+                        child: TextFormField(
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            hintText: 'Email Address',
+                            focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(width: 2, color: Colors.black),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(100),
+                              ),
                             ),
-                          )),
-                    ),
-                    const SizedBox(
-                      height: 24,
-                    ),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        hintText: 'Enter Your Password',
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(width: 5),
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(100),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(width: 2, color: Colors.black),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(100),
+                              ),
+                            ),
+                            border: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(width: 2, color: Colors.black),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(100),
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(
+                        height: 24,
+                      ),
+                      SizedBox(
+                        width: 300,
+                        child: TextFormField(
+                          //keyboardType: TextInputType.visiblePassword,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            hintText: 'Enter Your Password',
+                            focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(width: 2, color: Colors.black),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(100),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  width: 2, color: Colors.black), //<-- SEE HERE
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(100),
+                              ),
+                            ),
+                            border: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(width: 2, color: Colors.black),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(100),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(
@@ -91,13 +134,13 @@ class _AuthScreenState extends State<AuthScreen> {
                 height: 24,
               ),
               Container(
-                  height: 45,
-                  width: 250,
+                  height: 50,
+                  width: 300,
                   decoration: BoxDecoration(
-                      color: Color(0xff1DA1F2),
+                      color: const Color(0xff1DA1F2),
                       borderRadius: BorderRadius.circular(100)),
-                  child: Center(
-                    child: const Text(
+                  child: const Center(
+                    child: Text(
                       'Log in',
                       style: TextStyle(
                           fontSize: 16,
@@ -112,10 +155,10 @@ class _AuthScreenState extends State<AuthScreen> {
                 text: TextSpan(
                     text: 'Don’t have an account?',
                     style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xff888888),
-                        fontSize: 14.0,
-                        fontFamily: "HelveticaNeue"),
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xff888888),
+                      fontSize: 14.0,
+                    ),
                     children: <TextSpan>[
                       TextSpan(
                           text: ' Sign Up',
