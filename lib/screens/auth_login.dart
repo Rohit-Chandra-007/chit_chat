@@ -10,6 +10,22 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  RegExp passValid = RegExp(r"(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)");
+
+  String email = '';
+  String password = '';
+
+  void _submit() {
+    bool isValid = _formKey.currentState!.validate();
+    if (isValid) {
+      _formKey.currentState!.save();
+    }
+    debugPrint(email);
+    debugPrint(password);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,12 +65,26 @@ class _AuthScreenState extends State<AuthScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 48),
                 child: Form(
+                  key: _formKey,
                   child: Column(
                     children: [
                       SizedBox(
                         width: 300,
                         child: TextFormField(
+                          validator: (value) {
+                            if (value == null ||
+                                value.trim().isEmpty ||
+                                !value.contains('@')) {
+                              return 'entered invalid email address';
+                            }
+                            return null;
+                          },
+                          onSaved: (newValue) {
+                            email = newValue!;
+                          },
                           keyboardType: TextInputType.emailAddress,
+                          autocorrect: false,
+                          textCapitalization: TextCapitalization.none,
                           decoration: const InputDecoration(
                             hintText: 'Email Address',
                             focusedBorder: OutlineInputBorder(
@@ -87,7 +117,18 @@ class _AuthScreenState extends State<AuthScreen> {
                       SizedBox(
                         width: 300,
                         child: TextFormField(
-                          //keyboardType: TextInputType.visiblePassword,
+                          validator: (value) {
+                            if (value == null || value.trim().length < 6) {
+                              return 'password should contain atleast 6 characters';
+                            }
+                            if (!value.trim().contains(passValid)) {
+                              return 'password should contain special characters';
+                            }
+                            return null;
+                          },
+                          onSaved: (newValue) {
+                            password = newValue!;
+                          },
                           obscureText: true,
                           decoration: const InputDecoration(
                             hintText: 'Enter Your Password',
@@ -100,7 +141,9 @@ class _AuthScreenState extends State<AuthScreen> {
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                  width: 2, color: Colors.black), //<-- SEE HERE
+                                width: 2,
+                                color: Colors.black,
+                              ), //<-- SEE HERE
                               borderRadius: BorderRadius.all(
                                 Radius.circular(100),
                               ),
@@ -115,39 +158,44 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(
+                        height: 12,
+                      ),
+                      const Text(
+                        'Forgotten Password?',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xff1DA1F2),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 24,
+                      ),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(100),
+                        onTap: _submit,
+                        child: Container(
+                          height: 50,
+                          width: 300,
+                          decoration: BoxDecoration(
+                              color: const Color(0xff1DA1F2),
+                              borderRadius: BorderRadius.circular(100)),
+                          child: const Center(
+                            child: Text(
+                              'Log in',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(
-                height: 12,
-              ),
-              const Text(
-                'Forgotten Password?',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xff1DA1F2),
-                ),
-              ),
-              const SizedBox(
-                height: 24,
-              ),
-              Container(
-                  height: 50,
-                  width: 300,
-                  decoration: BoxDecoration(
-                      color: const Color(0xff1DA1F2),
-                      borderRadius: BorderRadius.circular(100)),
-                  child: const Center(
-                    child: Text(
-                      'Log in',
-                      style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
-                    ),
-                  )),
               const SizedBox(
                 height: 12,
               ),

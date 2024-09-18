@@ -1,4 +1,4 @@
-import 'package:chit_chat/screens/auth.dart';
+import 'package:chit_chat/screens/auth_login.dart';
 import 'package:flutter/material.dart';
 
 void main() {
