@@ -1,6 +1,7 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:chit_chat/screens/sign_up.dart';
+import 'package:chit_chat/widgets/common_textformfield.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -19,13 +20,17 @@ class _AuthScreenState extends State<AuthScreen> {
 
   RegExp passValid = RegExp(r"(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)");
 
+  String fullName = '';
   String email = '';
+  String username = '';
   String password = '';
 
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController usernameController = TextEditingController();
 
-  bool _isLogin = true;
+  bool isLogin = true;
 
   void _submit() async {
     bool isValid = _formKey.currentState!.validate();
@@ -37,7 +42,7 @@ class _AuthScreenState extends State<AuthScreen> {
     debugPrint(password);
 
     try {
-      if (_isLogin) {
+      if (isLogin) {
         final userCredentials = await _firebase.signInWithEmailAndPassword(
             email: email, password: password);
         debugPrint(userCredentials.toString());
@@ -45,6 +50,16 @@ class _AuthScreenState extends State<AuthScreen> {
         final userCredentials = await _firebase.createUserWithEmailAndPassword(
             email: email, password: password);
         debugPrint(userCredentials.toString());
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredentials.user!.uid)
+            .set({
+          'fullname': fullName,
+          'username': username,
+          'email': email,
+          'image': 'imageurl',
+        });
       }
     } on FirebaseAuthException catch (error) {
       if (error.code == 'email-already-in-use') {
@@ -91,7 +106,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
               ),
               Text(
-                _isLogin ? 'Log in to Chit Chat' : 'Sign in to Chit Chat',
+                isLogin ? 'Log in to Chit Chat' : 'Sign in to Chit Chat',
                 style:
                     const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
@@ -104,49 +119,63 @@ class _AuthScreenState extends State<AuthScreen> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      SizedBox(
-                        width: 300,
-                        child: TextFormField(
-                          controller: emailController,
+                      if (!isLogin)
+                        CommonTextFormField(
+                          hintText: 'Full Name',
+                          controller: nameController,
+                          textCapitalization: TextCapitalization.characters,
+                          textInputType: TextInputType.name,
                           validator: (value) {
                             if (value == null ||
                                 value.trim().isEmpty ||
-                                !value.contains('@')) {
-                              return 'entered invalid email address';
+                                value != value.toUpperCase()) {
+                              return 'name cannot be blank & lowercase';
+                            }
+
+                            return null;
+                          },
+                          onSaved: (name) {
+                            fullName = name!;
+                          },
+                        ),
+                      if (!isLogin)
+                        const SizedBox(
+                          height: 24,
+                        ),
+                      if (!isLogin)
+                        CommonTextFormField(
+                          hintText: 'Username',
+                          controller: usernameController,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'name field cannot be blank';
                             }
                             return null;
                           },
-                          onSaved: (newValue) {
-                            email = newValue!;
+                          onSaved: (user) {
+                            username = user!;
                           },
-                          keyboardType: TextInputType.emailAddress,
-                          autocorrect: false,
-                          textCapitalization: TextCapitalization.none,
-                          decoration: const InputDecoration(
-                            hintText: 'Email Address',
-                            focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 2, color: Colors.black),
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(100),
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 2, color: Colors.black),
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(100),
-                              ),
-                            ),
-                            border: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 2, color: Colors.black),
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(100),
-                              ),
-                            ),
-                          ),
                         ),
+                      if (!isLogin)
+                        const SizedBox(
+                          height: 24,
+                        ),
+                      CommonTextFormField(
+                        hintText: 'Email Address',
+                        controller: emailController,
+                        textCapitalization: TextCapitalization.none,
+                        textInputType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null ||
+                              value.trim().isEmpty ||
+                              !value.contains('@')) {
+                            return 'entered invalid email address';
+                          }
+                          return null;
+                        },
+                        onSaved: (emailAddress) {
+                          email = emailAddress!;
+                        },
                       ),
                       const SizedBox(
                         height: 24,
@@ -199,16 +228,15 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(
                         height: 12,
                       ),
-                      _isLogin
-                          ? const Text(
-                              'Forgotten Password?',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xff1DA1F2),
-                              ),
-                            )
-                          : const SizedBox(),
+                      if (!isLogin)
+                        const Text(
+                          'Forgotten Password?',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xff1DA1F2),
+                          ),
+                        ),
                       const SizedBox(
                         height: 24,
                       ),
@@ -223,7 +251,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               borderRadius: BorderRadius.circular(100)),
                           child: Center(
                             child: Text(
-                              _isLogin ? 'Log in' : 'Sign in',
+                              isLogin ? 'Log in' : 'Sign in',
                               style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -241,7 +269,7 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               RichText(
                 text: TextSpan(
-                    text: _isLogin
+                    text: isLogin
                         ? 'Don’t have an account?'
                         : 'You have an account?',
                     style: const TextStyle(
@@ -251,7 +279,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                     children: <TextSpan>[
                       TextSpan(
-                          text: _isLogin ? ' Sign Up' : ' Log In',
+                          text: isLogin ? ' Sign Up' : ' Log In',
                           style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Color(0xff1DA1F2),
@@ -259,15 +287,13 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
-                              // setState(() {
-                              //   _isLogin = !_isLogin;
-                              //   passwordController.clear();
-                              //   emailController.clear();
-                              // });
-                              Navigator.of(context)
-                                  .pushReplacement(MaterialPageRoute(
-                                builder: (context) => const SignupScreen(),
-                              ));
+                              setState(() {
+                                isLogin = !isLogin;
+                                passwordController.clear();
+                                emailController.clear();
+                                nameController.clear();
+                                usernameController.clear();
+                              });
                             })
                     ]),
               ),
@@ -276,5 +302,14 @@ class _AuthScreenState extends State<AuthScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    passwordController.clear();
+    emailController.clear();
+    nameController.clear();
+    usernameController.clear();
+    super.dispose();
   }
 }
