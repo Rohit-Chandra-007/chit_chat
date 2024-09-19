@@ -20,19 +20,20 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'FlutterChat',
-        home: StreamBuilder(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SplashScreen();
-            }
-            if (snapshot.hasData) {
-              return const ChatScreen();
-            }
+      title: 'FlutterChat',
+      home: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SplashScreen();
+          }
+          if (snapshot.hasData) {
+            return const ChatScreen();
+          }
 
-            return const AuthScreen();
-          },
-        ));
+          return const AuthScreen();
+        },
+      ),
+    );
   }
 }

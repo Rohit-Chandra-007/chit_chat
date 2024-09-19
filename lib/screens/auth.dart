@@ -31,6 +31,7 @@ class _AuthScreenState extends State<AuthScreen> {
   TextEditingController usernameController = TextEditingController();
 
   bool isLogin = true;
+  bool isAuthenticating = false;
 
   void _submit() async {
     bool isValid = _formKey.currentState!.validate();
@@ -38,10 +39,14 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
     _formKey.currentState!.save();
+    FocusScope.of(context).unfocus();
     debugPrint(email);
     debugPrint(password);
 
     try {
+      setState(() {
+        isAuthenticating = true;
+      });
       if (isLogin) {
         final userCredentials = await _firebase.signInWithEmailAndPassword(
             email: email, password: password);
@@ -74,6 +79,9 @@ class _AuthScreenState extends State<AuthScreen> {
         );
       }
     }
+    setState(() {
+      isAuthenticating = false;
+    });
   }
 
   @override
@@ -240,26 +248,34 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(
                         height: 24,
                       ),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(100),
-                        onTap: _submit,
-                        child: Container(
-                          height: 50,
-                          width: 300,
-                          decoration: BoxDecoration(
-                              color: const Color(0xff1DA1F2),
-                              borderRadius: BorderRadius.circular(100)),
-                          child: Center(
-                            child: Text(
-                              isLogin ? 'Log in' : 'Sign in',
-                              style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
+                      !isAuthenticating
+                          ? InkWell(
+                              borderRadius: BorderRadius.circular(100),
+                              onTap: _submit,
+                              child: Container(
+                                height: 50,
+                                width: 300,
+                                decoration: BoxDecoration(
+                                    color: const Color(0xff1DA1F2),
+                                    borderRadius: BorderRadius.circular(100)),
+                                child: Center(
+                                  child: Text(
+                                    isLogin ? 'Log in' : 'Sign in',
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : const SizedBox(
+                              width: 50,
+                              height: 50,
+                              child: CircularProgressIndicator(
+                                color: Color(0xff1DA1F2),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -267,36 +283,37 @@ class _AuthScreenState extends State<AuthScreen> {
               const SizedBox(
                 height: 12,
               ),
-              RichText(
-                text: TextSpan(
-                    text: isLogin
-                        ? 'Don’t have an account?'
-                        : 'You have an account?',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xff888888),
-                      fontSize: 14.0,
-                    ),
-                    children: <TextSpan>[
-                      TextSpan(
-                          text: isLogin ? ' Sign Up' : ' Log In',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xff1DA1F2),
-                            fontSize: 14.0,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              setState(() {
-                                isLogin = !isLogin;
-                                passwordController.clear();
-                                emailController.clear();
-                                nameController.clear();
-                                usernameController.clear();
-                              });
-                            })
-                    ]),
-              ),
+              if (!isAuthenticating)
+                RichText(
+                  text: TextSpan(
+                      text: isLogin
+                          ? 'Don’t have an account?'
+                          : 'You have an account?',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xff888888),
+                        fontSize: 14.0,
+                      ),
+                      children: <TextSpan>[
+                        TextSpan(
+                            text: isLogin ? ' Sign Up' : ' Log In',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xff1DA1F2),
+                              fontSize: 14.0,
+                            ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                setState(() {
+                                  isLogin = !isLogin;
+                                  passwordController.clear();
+                                  emailController.clear();
+                                  nameController.clear();
+                                  usernameController.clear();
+                                });
+                              })
+                      ]),
+                ),
             ],
           ),
         ),
