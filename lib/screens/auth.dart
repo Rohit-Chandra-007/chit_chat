@@ -1,4 +1,5 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:chit_chat/screens/sign_up.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
@@ -258,11 +259,15 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
-                              setState(() {
-                                _isLogin = !_isLogin;
-                                passwordController.clear();
-                                emailController.clear();
-                              });
+                              // setState(() {
+                              //   _isLogin = !_isLogin;
+                              //   passwordController.clear();
+                              //   emailController.clear();
+                              // });
+                              Navigator.of(context)
+                                  .pushReplacement(MaterialPageRoute(
+                                builder: (context) => const SignupScreen(),
+                              ));
                             })
                     ]),
               ),
