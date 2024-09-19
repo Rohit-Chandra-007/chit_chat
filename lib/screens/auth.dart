@@ -1,6 +1,10 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
+FirebaseAuth _firebase = FirebaseAuth.instance;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -17,13 +21,43 @@ class _AuthScreenState extends State<AuthScreen> {
   String email = '';
   String password = '';
 
-  void _submit() {
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+
+  bool _isLogin = true;
+
+  void _submit() async {
     bool isValid = _formKey.currentState!.validate();
-    if (isValid) {
-      _formKey.currentState!.save();
+    if (!isValid) {
+      return;
     }
+    _formKey.currentState!.save();
     debugPrint(email);
     debugPrint(password);
+
+    try {
+      if (_isLogin) {
+        final userCredentials = await _firebase.signInWithEmailAndPassword(
+            email: email, password: password);
+        debugPrint(userCredentials.toString());
+      } else {
+        final userCredentials = await _firebase.createUserWithEmailAndPassword(
+            email: email, password: password);
+        debugPrint(userCredentials.toString());
+      }
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'email-already-in-use') {
+        //...
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.message ?? 'Authentication Failed'),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -55,9 +89,10 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
               ),
-              const Text(
-                'Log in to Chit Chat',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Text(
+                _isLogin ? 'Log in to Chit Chat' : 'Sign in to Chit Chat',
+                style:
+                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(
                 height: 48,
@@ -71,6 +106,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       SizedBox(
                         width: 300,
                         child: TextFormField(
+                          controller: emailController,
                           validator: (value) {
                             if (value == null ||
                                 value.trim().isEmpty ||
@@ -117,6 +153,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       SizedBox(
                         width: 300,
                         child: TextFormField(
+                          controller: passwordController,
                           validator: (value) {
                             if (value == null || value.trim().length < 6) {
                               return 'password should contain atleast 6 characters';
@@ -131,7 +168,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           },
                           obscureText: true,
                           decoration: const InputDecoration(
-                            hintText: 'Enter Your Password',
+                            hintText: 'Password',
                             focusedBorder: OutlineInputBorder(
                               borderSide:
                                   BorderSide(width: 2, color: Colors.black),
@@ -143,7 +180,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               borderSide: BorderSide(
                                 width: 2,
                                 color: Colors.black,
-                              ), //<-- SEE HERE
+                              ),
                               borderRadius: BorderRadius.all(
                                 Radius.circular(100),
                               ),
@@ -161,14 +198,16 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(
                         height: 12,
                       ),
-                      const Text(
-                        'Forgotten Password?',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xff1DA1F2),
-                        ),
-                      ),
+                      _isLogin
+                          ? const Text(
+                              'Forgotten Password?',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xff1DA1F2),
+                              ),
+                            )
+                          : const SizedBox(),
                       const SizedBox(
                         height: 24,
                       ),
@@ -181,10 +220,10 @@ class _AuthScreenState extends State<AuthScreen> {
                           decoration: BoxDecoration(
                               color: const Color(0xff1DA1F2),
                               borderRadius: BorderRadius.circular(100)),
-                          child: const Center(
+                          child: Center(
                             child: Text(
-                              'Log in',
-                              style: TextStyle(
+                              _isLogin ? 'Log in' : 'Sign in',
+                              style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white),
@@ -201,7 +240,9 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               RichText(
                 text: TextSpan(
-                    text: 'Don’t have an account?',
+                    text: _isLogin
+                        ? 'Don’t have an account?'
+                        : 'You have an account?',
                     style: const TextStyle(
                       fontWeight: FontWeight.w500,
                       color: Color(0xff888888),
@@ -209,7 +250,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                     children: <TextSpan>[
                       TextSpan(
-                          text: ' Sign Up',
+                          text: _isLogin ? ' Sign Up' : ' Log In',
                           style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             color: Color(0xff1DA1F2),
@@ -217,7 +258,11 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () {
-                              //Navigator.pushNamed(context, MyRoute.signUpRoute);
+                              setState(() {
+                                _isLogin = !_isLogin;
+                                passwordController.clear();
+                                emailController.clear();
+                              });
                             })
                     ]),
               ),

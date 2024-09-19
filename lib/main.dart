@@ -1,4 +1,7 @@
-import 'package:chit_chat/screens/auth_login.dart';
+import 'package:chit_chat/screens/auth.dart';
+import 'package:chit_chat/screens/chat.dart';
+import 'package:chit_chat/screens/splash.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -16,6 +19,20 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(title: 'FlutterChat', home: AuthScreen());
+    return MaterialApp(
+        title: 'FlutterChat',
+        home: StreamBuilder(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SplashScreen();
+            }
+            if (snapshot.hasData) {
+              return const ChatScreen();
+            }
+
+            return const AuthScreen();
+          },
+        ));
   }
 }
